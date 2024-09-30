@@ -1,8 +1,6 @@
 package custom_ssim
 
 import (
-	"math"
-
 	"github.com/consensys/gnark/frontend"
 )
 
@@ -14,18 +12,16 @@ type SSIMCircuit struct {
 	ExpectedSSIM frontend.Variable // Expected SSIM value for asserting
 }
 
-// Constants for SSIM formula
-var (
-	L  = 255.0
-	K1 = 0.01
-	K2 = 0.03
-	C1 = math.Pow((K1 * L), 2.0)
-	C2 = math.Pow((K2 * L), 2.0)
-)
-
 // Define defines the circuit's constraints
 func (c *SSIMCircuit) Define(api frontend.API) error {
 	n := len(c.Image1) // Number of pixels
+
+	// Constants for SSIM formula
+	L := 255
+	K1 := api.Div(1, 100)
+	K2 := api.Div(3, 100)
+	C1 := api.Mul(api.Mul(K1, L), api.Mul(K1, L))
+	C2 := api.Mul(api.Mul(K2, L), api.Mul(K2, L))
 
 	// Step 1: Calculate Mean for both images
 	sumImage1 := frontend.Variable(0)
@@ -53,7 +49,7 @@ func (c *SSIMCircuit) Define(api frontend.API) error {
 	// c.Stdev1 = api.Sqrt(api.Div(variance1, frontend.Variable(n)))
 	// c.Stdev2 = api.Sqrt(api.Div(variance2, frontend.Variable(n)))
 
-	// we will be using standanrd deviation square, so we won't need above sqaure root
+	// We will be using standanrd deviation square, so we won't need above sqaure root
 	Stdev1 := api.Div(variance1, frontend.Variable(n))
 	Stdev2 := api.Div(variance2, frontend.Variable(n))
 
